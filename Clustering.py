@@ -54,3 +54,39 @@ class Cluster:
         #propagation = skn.clustering.PropagationClustering()
         #labels = propagation.fit_transform(AdjacencyMatrix)
         return labels
+def split_data_per_cluster(kmeans,data):
+    """
+    Given a kmeans object that we used to split the data into clusters.
+    The data are then splitted according to the cluster where the belong.
+    """
+    data_out = []
+    for i in range(kmeans.n_clusters):   
+        kmeans.labels_
+        data_out.append(data[np.argwhere(kmeans.labels_==i)[:,0]])
+    return data_out
+def compute_dist_vector(array):
+    """
+    return a 1D vector of distance between the points in the array.
+    The shape of the array must be Nx3, where N is the number of points
+    """
+    if array.shape[0]==1:
+        # return an unique 0 to allow the computation of the mean
+        return np.array([0.])
+    dists = np.zeros(array.shape[0]*(array.shape[0]-1)//2,dtype=float)
+    k=0
+    for i in range(array.shape[0]):
+        for j in range(i):
+            dists[k] = np.linalg.norm(array[i]-array[j])
+            k+=1
+    return dists
+def compute_mutual_distance(A1,A2):
+    """
+    return a 1D vector of distance between the two arrays.
+    """
+    dists = np.zeros(A1.shape[0]*A2.shape[0],dtype=float)
+    k=0
+    for a1 in A1:
+        for a2 in A2:
+            dists[k] = np.linalg.norm(a1-a2)
+            k+=1
+    return dists

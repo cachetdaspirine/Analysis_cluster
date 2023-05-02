@@ -22,9 +22,10 @@ class ParallelSimulation:
                  simulation_param,
                  cpu_param):
         self.gillespie_param = gillespie_param
-        self.step_tot = simulation_param['step_tot']
-        self.dump_step = simulation_param['dump_step']
-        self.min_dump_step = simulation_param['min_dump_step']
+        self.step_tot = simulation_param['step_tot'] # total number of steps
+        self.dump_step = simulation_param['dump_step'] # number of steps between two outputs
+        self.min_dump_step = simulation_param['min_dump_step'] # minimal number of steps before a measurement is performed
+        self.measurement_step = simulation_param['measurement_steps'] # number of steps use to compute a thermodynamic quantity
         self.Nnodes = cpu_param['Nnodes']
         self.Simulation_Name = simulation_param['Simulation_Name']
         try:
@@ -64,16 +65,27 @@ class ParallelSimulation:
         res = dict()
         gillespie  = Gil.Gillespie(a1,a2,a3,a4,a5,a6,a7,a8,a9)
         for step in range(self.step_tot//self.dump_step):
-            move,time = gillespie.evolve(self.dump_step)
             if step*self.dump_step >= self.min_dump_step:
+                move,time = gillespie.evolve(self.dump_step-self.measurement_step)
+                for measuring_steps in range(self.measurement_step):
+                    self.state_b4(gillespie,time)
+                    mes_move,mes_time = gillespie.evolve()
+                    move =  np.append(move,mes_move)
+                    time = np.append(time,mes_time)
+                    self.state_after(gillespie,time)
                 res.update(self.extract_parameter(gillespie,move,time,(step+1)*self.dump_step,name = str(truncate(arg[self.index_of_keyarray],3))))
+            else :
+                move,time = gillespie.evolve(self.dump_step)
         print(str(truncate(arg[self.index_of_keyarray],3))+" is over.")
         return res
     def Parallel_Run(self):
         pool = Pool(self.Nnodes)
         res = pool.starmap(self.Run_One_system,self.args)
         return self.unpack_res(res)
-
+    def state_b4(self,gillespie,time):
+        """ this function save what has to be saves before an evolution step"""
+    def state_after(self,gillespie,time):
+        """ this function save what has to be saved after an evolution step"""
     def unpack_res(self,res):
         """
         This function unpack the results and has to be edited in the child function

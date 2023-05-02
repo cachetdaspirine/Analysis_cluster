@@ -1,5 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
+sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Aging_Condensate/Gillespie_backend')
+import Gillespie_backend as Gil
 
 def compute_2_body_dist_prob(R,bins=100):
     maxR = np.max(R)
@@ -82,7 +85,7 @@ def twobody_dist_prob_from_dist(D,bins=100):
                 pass
     return X,PR
 
-def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dimension,compute_step,epsilon,Nreplica,PLOT=False):
+def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dimension,compute_step,step_size,epsilon,Nreplica,PLOT=False):
     """
     This function create a system, and make it evolve. It computes the pair correlation function on the fly every compute_step.
     Whenever the norm of the difference of two succesives pair correlation functions is smaller than epsilon : stop the simulation and
@@ -90,6 +93,9 @@ def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dime
 
     We have the possibility to use several replica in parallel to compute the pair correlation function. This is especially important
     whenever there are very few linkers, or whenever the system is supposed to evolve quickly.
+
+    compute_step : is the number of step ( the last ones) used to compute the pair correlation function
+    step_size : is the number of steps of equilibration between each measurement
     """
     np.random.seed(seed)
     # make an array of Gillespie simulations:
@@ -99,8 +105,7 @@ def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dime
                                 kdiff=kdiff,
                                 seed = s,
                                 Nlinker=Nlinker,
-                                dimension=dimension,
-                                PLOT=False) for s in np.random.randint(0,100000,Nreplica)]
+                                dimension=dimension) for s in np.random.randint(0,100000,Nreplica)]
     # initialize the two probability distributions:
     D = Concatenate_dists(Syss)
     X,g1 = twobody_dist_prob_from_dist(D,bins=100)
@@ -114,11 +119,11 @@ def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dime
         # Dists in the concatenation of all the distances between linkers of all the replica for each steps in compute_step.
         Dists = []
         # make a serie of step between each computation of the two body distrib
-        for i in range(compute_step):
+        for i in range(compute_step//step_size):
             # time is used to compute the average time of all moves
             time = []
             for Sys in Syss:
-                movetype,Dt = Sys.evolve()
+                movetype,Dt = Sys.evolve(step_size)
                 time.append(np.sum(Dt))
             # add up the average time of the moves to the total time
             t += np.mean(time)
@@ -131,7 +136,6 @@ def Time_to_reach_equilibrium(ell_tot,rho0,BindingEnergy,kdiff,seed,Nlinker,dime
         X,g1 = twobody_dist_prob_from_dist(Dists,bins=100)
         print(Norm(X,g1-g2)/Norm(X,g1+g2))
         counter+=1
-    if PLOT:   
-        plt.plot(X,g1)
-        plt.plot(X,g2)
+    if PLOT: 
+        return t,X,g1,g2,Syss
     return t
