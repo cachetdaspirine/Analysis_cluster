@@ -2,7 +2,7 @@ import numpy as np
 from multiprocessing import Pool
 import sys
 import math
-sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Aging_Condensate/Gillespie_backend')
+sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Gillespie/Gillespie_backend')
 import Gillespie_backend as Gil
 def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
@@ -27,7 +27,7 @@ class ParallelSimulation:
         self.min_dump_step = simulation_param['min_dump_step'] # minimal number of steps before a measurement is performed
         self.measurement_step = simulation_param['measurement_steps'] # number of steps use to compute a thermodynamic quantity
         self.Nnodes = cpu_param['Nnodes']
-        self.Simulation_Name = simulation_param['Simulation_Name']
+
         try:
             self.keyarray = simulation_param['label_key']
         except KeyError:
@@ -64,18 +64,16 @@ class ParallelSimulation:
         arg = [a1,a2,a3,a4,a5,a6,a7,a8,a9]
         res = dict()
         gillespie  = Gil.Gillespie(a1,a2,a3,a4,a5,a6,a7,a8,a9)
-        for step in range(self.step_tot//self.dump_step):
-            if step*self.dump_step >= self.min_dump_step:
-                move,time = gillespie.evolve(self.dump_step-self.measurement_step)
-                for measuring_steps in range(self.measurement_step):
-                    self.state_b4(gillespie,time)
-                    mes_move,mes_time = gillespie.evolve()
-                    move =  np.append(move,mes_move)
-                    time = np.append(time,mes_time)
-                    self.state_after(gillespie,time)
-                res.update(self.extract_parameter(gillespie,move,time,(step+1)*self.dump_step,name = str(truncate(arg[self.index_of_keyarray],3))))
-            else :
-                move,time = gillespie.evolve(self.dump_step)
+        gillespie.evolve(self.min_dump_step) 
+        for step in range((self.step_tot-self.min_dump_step)//self.dump_step):
+            move,time = gillespie.evolve(self.dump_step-self.measurement_step)
+            for measuring_steps in range(self.measurement_step):
+                self.state_b4(gillespie,time)
+                mes_move,mes_time = gillespie.evolve()
+                move =  np.append(move,mes_move)
+                time = np.append(time,mes_time)
+                self.state_after(gillespie,time)
+            res.update(self.extract_parameter(gillespie,move,time,(step+1)*self.dump_step+self.min_dump_step,name = str(truncate(arg[self.index_of_keyarray],3))))
         print(str(truncate(arg[self.index_of_keyarray],3))+" is over.")
         return res
     def Parallel_Run(self):
