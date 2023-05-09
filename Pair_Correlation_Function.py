@@ -1,9 +1,45 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
+from scipy.spatial import distance_matrix
 sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Aging_Condensate/Gillespie_backend')
 import Gillespie_backend as Gil
 
+def compute_pair_prob_function(points_sets, weights, num_bins, max_distance,dimension = 3):
+    n_sets = len(points_sets)
+    assert n_sets == len(weights), "The number of point sets and weights must be the same"
+
+    all_distances = []
+    all_weights = []
+    total_weighted_pairs = 0
+    
+    for points, weight in zip(points_sets, weights):
+        dist_matrix = distance_matrix(points, points)
+        distances = dist_matrix[np.triu_indices_from(dist_matrix, k=1)]
+        all_distances.extend(distances)
+        
+        n_points = len(points)
+        n_pairs = n_points * (n_points - 1) // 2
+        all_weights.extend([weight] * n_pairs)
+        
+        total_weighted_pairs += weight * n_pairs
+
+    hist, bin_edges = np.histogram(all_distances, bins=num_bins, range=(0, max_distance), weights=all_weights)
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
+    bin_widths = bin_edges[1:] - bin_edges[:-1]
+    if dimension == 3:
+        shell_volumes = (4 / 3) * np.pi * ((bin_centers + bin_widths)**3 - bin_centers**3)
+    elif dimension ==2:
+        shell_volumes = 4*np.pi * ((bin_centers + bin_widths)**2 - bin_centers**2)
+    elif dimension==1:
+        shell_volumes = 1
+    else:
+        raise NotImplementedError
+    normalized_hist = hist / (total_weighted_pairs * shell_volumes)
+
+    return bin_centers, normalized_hist
+
+"""
 def compute_2_body_dist_prob(R,bins=100):
     maxR = np.max(R)
     ddist = maxR/(bins-1)
@@ -40,14 +76,8 @@ def compute_2_body_dist_prob_from_dist(D,bins=100):
             except IndexError:
                 pass
     return X,PR
+"""
 
-def Norm(x_array,y_array):
-    """"
-    a function is represented by a y_array and a x_array. this function return the norm 2
-    """
-    if y_array.__len__() != x_array.__len__():
-        raise ValueError
-    return np.sqrt(np.sum(np.array([((x_array[i+1]-x_array[i])*y_array[i])**2 for i in range(x_array.__len__()-1)])))
 def Concatenate_dists(Syss):
     """
     This function takes a list of replicas, and return a single array with all the distances between linkers
