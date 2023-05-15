@@ -1,5 +1,13 @@
 import numpy as np
 
+Ec = lambda L,N : -3/2*np.log(L/N* np.pi/3)
+
+def V(L,Nlinker,dimension):
+    if Nlinker ==1:
+        return 4/3*np.pi*(L/6)**1.5
+    else:
+        return  2*((L/6)**1.5/Nlinker**0.5*3/4*np.pi)
+
 def nonzero_points(arr):
     """Returns all points in `arr` that are not equal to [0, 0, 0].
     
