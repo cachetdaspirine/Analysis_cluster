@@ -17,14 +17,13 @@ def Get_E_Nlinker_Transition_curve(Gil_args,Npoints=20,step_tot = 10**4):
     """
     Compute the N_linker vs energy transition curve
     Parameters :
-    Gil_args (iterable) : parameters of the gillespie simulation in the order : ell_tot,Energy,kdiff,seeds,Nlinker
+    Gil_args (iterable) : parameters of the gillespie simulation in the order : ell_tot,kdiff,Nlinker
     step_tot (int) : total number of steps to equilibrate, the first have of the simulation is to reach a steady state
         the other half of the simulation is for the ensemble average. Usually : no need to change step_tot.
     """
-
-    gillespie_params,simulation_param,cpu_param = parameters_to_dict(Gil_args[0],Gil_args[1],Gil_args[2],Gil_args[3],Gil_args[5],step_tot,step_tot//2,step_tot//2,step_tot//2)
-    approx_Ec = Ec(gillespie_params['ell_tot'],gillespie_params['Nlinker'])
+    approx_Ec = Ec(Gil_args[0],Gil_args[2])
     Energy = np.linspace(0.5*approx_Ec,2*approx_Ec,Npoints)
+    gillespie_params,simulation_param,cpu_param = parameters_to_dict(Gil_args[0],Energy,Gil_args[1],np.random.randint(0,100000,Npoints),Gil_args[2],step_tot,step_tot//2,step_tot//2,step_tot//2)
     names = [str(truncate(e,3)) for e in Energy]
     steps = [str(step*simulation_param['dump_step']) for step in range(simulation_param['min_dump_step']//simulation_param['dump_step']+1,step_tot//simulation_param['dump_step']+1)]
     Sim = Simulation(gillespie_params,simulation_param,cpu_param,names,steps)
