@@ -1,4 +1,9 @@
 import numpy as np
+import math
+
+def truncate(number, digits) -> float:
+    stepper = 10.0 ** digits
+    return math.trunc(stepper * number) / stepper
 
 Ec = lambda L,N : -3/2*np.log(L/N* np.pi/3)
 
