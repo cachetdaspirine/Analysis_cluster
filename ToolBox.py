@@ -20,7 +20,7 @@ def nonzero_points(arr):
         arr (numpy.ndarray): A 2D or 3D array of shape (Lx, N, 3) or (N, 3)
     
     Returns:
-        numpy.ndarray: A 2D array of shape (M, 3) where M is the number of non-zero points in `arr`
+        numpy.ndarray: A 2D array of shape (M, 3) where M is² the number of non-zero points in `arr`
     """
     arr = np.atleast_2d(arr)
     nonzero_mask = np.any(arr != [0,0,0], axis=1)
