@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 from scipy.spatial import distance_matrix
-sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Aging_Condensate/Gillespie_backend')
+sys.path.append('/home/hcleroy/PostDoc/aging_condensates/Simulation/Gillespie/Gillespie_backend/')
 import Gillespie_backend as Gil
 
 def compute_pair_prob_function(points_sets, weights, num_bins, max_distance,dimension = 3):

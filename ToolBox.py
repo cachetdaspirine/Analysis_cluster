@@ -1,6 +1,8 @@
 import numpy as np
 import math
 
+MaxEnt = lambda N,L : 1.5* (N-1) * (np.log(3/(2*np.pi*L/N)) -1)
+
 def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
     return math.trunc(stepper * number) / stepper
@@ -68,3 +70,26 @@ def linker_entropy(move, S):
 
     return entropy_dict
 
+def moving_average(X, Y, window_size):
+    """
+    Compute a moving average.
+    
+    Args:
+        X: np.array of x values
+        Y: np.array of y values
+        window_size: size of the window for moving average.
+        
+    Returns:
+        X_av: X values corresponding to the averaged Y values
+        Y_av: Averaged Y values
+    """
+    window = np.ones(int(window_size))/float(window_size)
+    Y_av = np.convolve(Y, window, 'valid')
+
+    # For moving average with 'valid' mode, the length of Y_av is reduced 
+    # at the beginning and end. We have to remove the corresponding X values.
+    cut_size_start = (window_size - 1) // 2
+    cut_size_end = (window_size - 1) - cut_size_start
+    X_av = X[cut_size_start: -cut_size_end or None]
+
+    return X_av,Y_av
