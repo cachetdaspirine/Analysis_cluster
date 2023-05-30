@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-MaxEnt = lambda N,L : 1.5* (N-1) * (np.log(3/(2*np.pi*L/N)) -1)
+MinEnt = lambda N,L : 1.5* (N-1) * (np.log(3/(2*np.pi*L/N)) -1)
 
 def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
