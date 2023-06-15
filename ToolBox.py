@@ -1,7 +1,11 @@
 import numpy as np
 import math
 
-MinEnt = lambda N,L : 1.5* (N-1) * (np.log(3/(2*np.pi*L/N)) -1)
+MinEnt = lambda N,L : 1.5* (N-1) * (np.log(3/(2*np.pi*L/N)) -1) # N is the number of linkers
+#MinEnt = lambda N,L : 1.5* (N) * (np.log(2*np.pi*L/(3*N))) # N is the number of linkers
+Fmin = lambda N,L,Eb : Eb*N - (L-N)*np.log(4*np.pi)# N is the number of linkers
+#Fmax = lambda N,L,Eb : Eb*N - MinEnt(N,L)
+Fmax = lambda N,L, E : -1.5*((N-1)*np.log(3*(N-1)/(2*np.pi*L)) -  1)-L*np.log(4*np.pi)+E*N
 
 def truncate(number, digits) -> float:
     stepper = 10.0 ** digits
